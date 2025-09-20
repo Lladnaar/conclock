@@ -1,7 +1,8 @@
 import {describe, expect, test, beforeAll} from "vitest";
 import axios from "axios";
+import config from "../config.ts";
 
-const baseUrl = "http://localhost:8080/api";
+const baseUrl = `http://localhost:${config.server.port}/api`;
 let eventUrl: string;
 
 beforeAll(async () => {
@@ -59,6 +60,6 @@ describe("Postman event sequence test", () => {
     });
 
     test.sequential("GET to find missing", async () => {
-        await expect(axios.get(new URL(event.url, baseUrl).href)).rejects.toThrowError();
+        await expect(axios.get(new URL(event.url, baseUrl).href)).rejects.toThrowError(expect.objectContaining({status: 404}));
     });
 });

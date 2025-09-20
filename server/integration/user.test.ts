@@ -1,7 +1,8 @@
 import {describe, expect, test, beforeAll} from "vitest";
 import axios from "axios";
+import config from "../config.ts";
 
-const baseUrl = "http://localhost:8080/api";
+const baseUrl = `http://localhost:${config.server.port}/api`;
 let userUrl: string;
 
 beforeAll(async () => {
