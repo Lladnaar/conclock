@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon server/main.ts",
-    "lint": "tsc & eslint .",
+    "lint": "tsc && eslint",
     "test": "vitest --run",
     "start": "node server/main.ts",
     "build": "docker build -t conclock ."
