@@ -85,11 +85,11 @@ export default defineConfig([
 // ?        "stylistic/yield-star-spacing":            [fixOnly], // Require or disallow spacing around the `*` in `yield*` expressions
 
             // Line breaks (fix only)
-            "stylistic/array-bracket-newline":    [fixOnly, multiLine], // Bracket newlines if multiline
+            "stylistic/array-bracket-newline":    [fixOnly, "consistent"], // Bracket newlines if multiline
             "stylistic/curly-newline":            [fixOnly, consistent], // Block newlines if present/multiline
             "stylistic/function-paren-newline":   [fixOnly, "multiline"], // Param newlines if multiline
             "stylistic/implicit-arrow-linebreak": [fixOnly, "beside"], // Brace beside arrow
-            "stylistic/object-curly-newline":     [fixOnly, multiLine], // Object newlines if multiline
+            "stylistic/object-curly-newline":     [fixOnly, consistent], // Object newlines if multiline
 
             "stylistic/array-element-newline":          [fixOnly, multiLine], // Array newlines if multiline
             "stylistic/function-call-argument-newline": [fixOnly, "consistent"], // Consistent param line breaks
