@@ -4,20 +4,20 @@
 <head>
 	<title>Convention Clock</title>
 	<link rel="stylesheet" href="css/timer.css">	
-	<script type="module" src="js/conclock-clock.js"></script>
+	<script type="module" src="js/clock.js"></script>
 </head>
 
 <body>
- 	<div id="message" class="blue">Clock</div>
+ 	<div id="status" data-testId="status.message-text" class="blue">Clock</div>
  	
-	<div id="clock"></div>
+	<div id="timer" data-testid="timer.clock-text"></div>
 	
 	<div id="settings">
 		<ul class="setting">
 			<li>Style</li>
 			<li>
 				<label>SIZE</label>
-				<select id="setting.style">
+				<select id="setting.style" data-testid="setting.size-select">
 					<option value=""></option>
 					<option value="short">Short</option>
 					<option value="medium">Medium</option>
@@ -26,7 +26,7 @@
 			</li>
 			<li>
 				<label>24 HOUR</label>
-				<select id="setting.hour12">
+				<select id="setting.hour12" data-testid="setting.hour-select">
 					<option value=""></option>
 					<option value="true">12 hour</option>
 					<option value="false">24 hour</option>
@@ -38,13 +38,13 @@
 		<ul class="setting">
 			<li>Timezone</li>
 			<li>
-				<select id="setting.timezone">
+				<select id="setting.timezone" data-testid="setting.timezone-select">
 					<!-- timezones will be added by script -->>
 				</select>
 			</li>
 		</ul>
 
-		<button id="setting.close">&#x2717;</button>
+		<button id="setting.close" data-testid="setting.close-button">&#x2717;</button>
 	</div>
 </body>
 

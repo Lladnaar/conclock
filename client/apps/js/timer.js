@@ -4,7 +4,7 @@ export class Timer extends EventTarget {
 
         // restore cached offset
         this.timer = setInterval(this.doTick.bind(this), 500);
-		
+
         this.fetchTime();
     }
 
