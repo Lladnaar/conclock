@@ -17,7 +17,7 @@ test.describe("Settings...", () => {
         await page.goto("http://localhost:8080/clock.html");
         
         // Settings appear
-        await page.getByTestId("status.message-text").press("Escape");
+        await page.keyboard.press("Escape");
         await expect(page.getByTestId("setting.size-select")).toBeVisible();
         await expect(page.getByTestId("setting.hour-select")).toBeVisible();
         await expect(page.getByTestId("setting.timezone-select")).toBeVisible();
@@ -35,7 +35,7 @@ test.describe("Settings...", () => {
         await page.goto("http://localhost:8080/clock.html");
 
         // Settings appear
-        await page.mouse.down({button: "middle"});
+        await page.getByTestId("timer.clock-text").click({button: "middle"});
         await expect(page.getByTestId("setting.size-select")).toBeVisible();
         await expect(page.getByTestId("setting.hour-select")).toBeVisible();
         await expect(page.getByTestId("setting.timezone-select")).toBeVisible();
@@ -87,7 +87,7 @@ test.describe("Settings...", () => {
         // Timezone A
         await page.getByTestId("setting.timezone-select").selectOption("Europe/London");
         await expect(page.getByTestId("timer.clock-text")).toHaveText(/\d+:\d+/);
-        const timeA = await page.getByTestId("timer.clock-text").textContent();
+        const timeA = await page.getByTestId("timer.clock-text").textContent() ?? "";
         // Timezone B
         await page.getByTestId("setting.timezone-select").selectOption("Pacific/Auckland");
         await expect(page.getByTestId("timer.clock-text")).toHaveText(/\d+:\d+/);

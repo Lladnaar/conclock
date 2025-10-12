@@ -6,7 +6,7 @@ export class Settings {
         this.panel.hidden = true;
         this.addAllElements(this.panel);
 
-        document.addEventListener("keypress", this.keyPress.bind(this));
+        document.addEventListener("keydown", this.keyDown.bind(this));
         document.addEventListener("mousedown", this.mouseDown.bind(this));
         this.getElement("close").addEventListener("click", this.toggle.bind(this));
     }
@@ -50,7 +50,7 @@ export class Settings {
         return this;
     }
 
-    keyPress(event) {
+    keyDown(event) {
         if (event.key == "Escape") {
             this.toggle();
             event.stopPropagation();
