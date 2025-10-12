@@ -6,7 +6,7 @@ body {
 	font-family: sans-serif;
 }
 
-#message {
+#status {
 	width: 100%; height: 96pt;
 	line-height: 72pt;
 	text-align: center;
@@ -17,7 +17,7 @@ body {
 	font-size: 72pt;
 }
 
-#clock {
+#timer {
 	width: 100%;
 	font-size: 144pt;
 	text-align: center;
@@ -40,12 +40,6 @@ body {
 
 input.digit2 { width: 2.5em; }
 input.digit4 { width: 4.5em; }
-
-#status {
-	display: inline-block;
-	width: 0.8em; height: 0.8em;
-	border-radius: 0.4em;
-}
 
 #setting\.close {
 	position: absolute; top: 0; right: 0;

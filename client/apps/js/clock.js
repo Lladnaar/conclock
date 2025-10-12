@@ -1,5 +1,5 @@
-import { Timer }  from "./timer.js";
-import { Settings } from "./settings.js";
+import {Timer}  from "./timer.js";
+import {Settings} from "./settings.js";
 
 window.addEventListener("load", initialisePage);
 
@@ -14,10 +14,10 @@ class Clock {
         this.timer = new Timer();
         this.settings = new Settings("settings");
 
-        this.clock = document.getElementById("clock");
+        this.clock = document.getElementById("timer");
         this.timer.addEventListener("tick", this.update.bind(this));
     }
-	
+
     initialise() {
         // add time zones
         const timezoneSelect = document.getElementById("setting.timezone");
@@ -37,7 +37,7 @@ class Clock {
         this.clock.textContent = Intl.DateTimeFormat(undefined, options).format(new Date());
         return this;
     }
-	
+
     update(event) {
         this.time = event.time;
         return this.draw();
