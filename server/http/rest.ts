@@ -1,6 +1,7 @@
 import express from "express";
 import {StatusCodes as http} from "http-status-codes";
-import type {ResourceFactory} from "./resource.ts";
+import {ResourceFactory, InvalidResourceError, MissingResourceError} from "../resource/resource.ts";
+import {NotFoundError, BadRequestError} from "./error.ts";
 
 export class Rest {
     factory: ResourceFactory;
@@ -10,8 +11,16 @@ export class Rest {
     }
 
     async get(req: express.Request, res: express.Response) {
-        const resource = await this.factory.load(req.params.id!);
-        res.status(http.OK).send(this.factory.toRest(resource));
+        try {
+            const resource = await this.factory.load(req.params.id!);
+            res.status(http.OK).send(this.factory.toRest(resource));
+        }
+        catch (error) {
+            if (error instanceof MissingResourceError)
+                throw new NotFoundError(error.message);
+            else
+                throw error;
+        }
     }
 
     async getAll(req: express.Request, res: express.Response) {
@@ -20,13 +29,29 @@ export class Rest {
     }
 
     async post(req: express.Request, res: express.Response) {
-        const resource = await this.factory.create(req.body);
-        res.status(http.CREATED).send(this.factory.toRest(resource));
+        try {
+            const resource = await this.factory.create(req.body);
+            res.status(http.CREATED).send(this.factory.toRest(resource));
+        }
+        catch (error) {
+            if (error instanceof InvalidResourceError)
+                throw new BadRequestError(error.message);
+            else
+                throw error;
+        }
     }
 
     async put(req: express.Request, res: express.Response) {
-        const resource = await this.factory.save(req.params.id!, req.body);
-        res.status(http.OK).send(this.factory.toRest(resource));
+        try {
+            const resource = await this.factory.save(req.params.id!, req.body);
+            res.status(http.OK).send(this.factory.toRest(resource));
+        }
+        catch (error) {
+            if (error instanceof InvalidResourceError)
+                throw new BadRequestError(error.message);
+            else
+                throw error;
+        }
     }
 
     async delete(req: express.Request, res: express.Response) {

@@ -1,7 +1,7 @@
 import * as data from "../data/redis.ts";
-import {NotFoundError, BadRequestError} from "../http/error.ts";
 
 export class InvalidResourceError extends Error {}
+export class MissingResourceError extends Error {}
 
 export type ResourceId = {
     id: string;
@@ -45,9 +45,7 @@ export class ResourceFactory {
         }
         catch (error) {
             if (error instanceof data.LookupError)
-                throw new NotFoundError(error.message);
-            if (error instanceof BadRequestError)
-                throw new Error(error.message);
+                throw new MissingResourceError(error.message);
             else
                 throw error;
         }
