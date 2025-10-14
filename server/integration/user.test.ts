@@ -1,6 +1,7 @@
 import {describe, expect, test, beforeAll} from "vitest";
 import axios from "axios";
 import config from "../config.ts";
+import {StatusCodes as http} from "http-status-codes";
 
 const baseUrl = `http://localhost:${config.server.port}/api`;
 let userUrl: string;
@@ -10,7 +11,7 @@ beforeAll(async () => {
     userUrl = new URL(response.data.user.url, baseUrl).href;
 });
 
-describe("Postman user sequence test", () => {
+describe("Basic edit sequence test", () => {
     const user = {
         id: "USERID",
         url: "URL",
@@ -21,7 +22,7 @@ describe("Postman user sequence test", () => {
 
     test.sequential("POST to create", async () => {
         const response = await axios.post(userUrl, user);
-        expect(response.status).toBe(201);
+        expect(response.status).toBe(http.CREATED);
         expect(response.data).toHaveProperty("id");
         expect(response.data).toHaveProperty("url");
         expect(response.data).toHaveProperty("name", user.name);
@@ -34,7 +35,7 @@ describe("Postman user sequence test", () => {
 
     test.sequential("GET to check", async () => {
         const response = await axios.get(new URL(user.url, baseUrl).href);
-        expect(response.status).toBe(200);
+        expect(response.status).toBe(http.OK);
         expect(response.data).toEqual(user);
     });
 
@@ -43,22 +44,22 @@ describe("Postman user sequence test", () => {
         user.password = "correcthorsebatterystaple";
 
         const response = await axios.put(new URL(user.url, baseUrl).href, user);
-        expect(response.status).toBe(200);
+        expect(response.status).toBe(http.OK);
         expect(response.data).toEqual(user);
     });
 
     test.sequential("GET to list", async () => {
         const response = await axios.get(userUrl);
-        expect(response.status).toBe(200);
+        expect(response.status).toBe(http.OK);
         expect(response.data).toEqual(expect.arrayContaining([expect.objectContaining({id: user.id})]));
     });
 
     test.sequential("DELETE to remove", async () => {
         const response = await axios.delete(new URL(user.url, baseUrl).href);
-        expect(response.status).toBe(204);
+        expect(response.status).toBe(http.NO_CONTENT);
     });
 
     test.sequential("GET to find missing", async () => {
-        await expect(axios.get(new URL(user.url, baseUrl).href)).rejects.toThrowError();
+        await expect(axios.get(new URL(user.url, baseUrl).href)).rejects.toThrowError(expect.objectContaining({status: http.NOT_FOUND}));
     });
 });
