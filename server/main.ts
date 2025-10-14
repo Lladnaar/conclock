@@ -28,9 +28,8 @@ server.use("/api/event", eventRouter);
 
 // Errors
 
-server.all("/{*any}", () => {
-    throw new NotFoundError("Resource not found");
-});
+server.all("/api/{*any}", () => { throw new NotFoundError("Resource not found"); });
+server.all("/{*any}", () => { throw new NotFoundError("Resource not found", "text/html"); });
 server.use(errorHandler);
 
 // Start server
