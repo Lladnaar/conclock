@@ -1,7 +1,9 @@
 import {describe, expect, test, beforeAll} from "vitest";
 import axios from "axios";
+import config from "../config.ts";
+import {StatusCodes as http} from "http-status-codes";
 
-const baseUrl = "http://localhost:8080/api";
+const baseUrl = `http://localhost:${config.server.port}/api`;
 let timeUrl: string;
 
 beforeAll(async () => {
@@ -12,7 +14,7 @@ beforeAll(async () => {
 describe("Time", () => {
     test("GET time reports time", async () => {
         const response = await axios.get(timeUrl);
-        expect(response.status).toBe(200);
+        expect(response.status).toBe(http.OK);
         expect(response.data).toHaveProperty("time");
         expect(response.data.time).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
     });

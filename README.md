@@ -41,4 +41,45 @@ As of version 0.2 you will need a redis server available on redis://redis:6379. 
 
 ## Accessing ConClock
 
-Browse to http://host:9000/ and chose the desired client.
+Browse to http://host:8080/ and chose the desired client.
+
+# Development Notes
+
+```mermaid
+sequenceDiagram
+    actor Alice
+    participant Router as Express<br>Router
+    participant Rest
+    box Typesafe bubble
+        participant Resource
+    end
+    participant Data
+    
+    note over Alice,Data: POST/PUT
+    rect rgb(50%,50%,50%,10%)
+        Alice ->> Router: Key (URL)<br>Body (JSON)
+        Router ->> Rest: Key (params)<br>Content (body)
+        Rest ->> Resource: Content (any)
+        Resource -->> Alice: Validation exception (401 - Bad Request)
+        Resource ->> Data: Content (type)
+        Data ->> Resource: Content (any)
+        Resource ->> Rest: Content (type)
+        Rest ->> Router: Content (any)
+        Router ->> Alice: Content (JSON)
+    end
+
+    note over Alice,Data: GET
+    rect rgb(50%,50%,50%,10%)
+        Alice ->> Router: Key (URL)
+        Router ->> Rest: Key (params)
+        Rest ->> Resource: Key (any)
+        Resource ->> Data: Key (type)
+        Data -->> Alice: Lookup exception (404 - Not Found)
+        Data ->> Resource: Content (any)
+        Resource -->> Alice: Validation exception (500 - Internal Error)
+        Resource ->> Rest: Content (type)
+        Rest ->> Router: Content (any)
+        Router ->> Alice: Content (JSON)
+    end
+```
+ 

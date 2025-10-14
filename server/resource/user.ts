@@ -1,23 +1,23 @@
 import express from "express";
-import type {ResourceId, ResourceContent} from "./resource.ts";
+import type {Id, Content} from "./resource.ts";
 import {ResourceFactory, InvalidResourceError} from "./resource.ts";
-import {Rest} from "./rest.ts";
+import {Rest} from "../http/rest.ts";
 
 // Types
 
-type UserContent = ResourceContent & {
+export type User = Content & {
     username: string;
-    password: string;
+    password: string | undefined;
 };
 
-export type User = ResourceId & UserContent;
+export type UserResource = Id & User;
 
 // Factory
 
 export class UserFactory extends ResourceFactory {
     constructor() { super("user"); }
 
-    newContent(content: object): UserContent {
+    newContent(content: object): User {
         if (!this.isValid(content)) throw new InvalidResourceError("Invalid user");
 
         return {
@@ -27,10 +27,19 @@ export class UserFactory extends ResourceFactory {
         };
     }
 
-    isValid(item: object): item is UserContent {
-        return (super.isValid(item)
-            && "username" in item && typeof item.username === "string"
-            && "password" in item && typeof item.password === "string");
+    isValid(item: object): item is User {
+        let validity = super.isValid(item);
+        validity &&= "username" in item && typeof item.username === "string";
+        validity &&= !("password" in item) || ("password" in item && (typeof item.password === "string" || typeof item.password == "undefined"));
+        return validity;
+    }
+
+    toData(item: User) {
+        return {
+            ...super.toData(item),
+            username: item.username,
+            password: item.password,
+        };
     }
 }
 
@@ -44,4 +53,5 @@ router.get("/:id", userRest.get.bind(userRest));
 router.post("/", userRest.post.bind(userRest));
 router.put("/:id", userRest.put.bind(userRest));
 router.delete("/:id", userRest.delete.bind(userRest));
+
 export default router;
