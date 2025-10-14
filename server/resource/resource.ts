@@ -1,5 +1,5 @@
 import * as data from "../data/redis.ts";
-import {NotFoundError, BadRequestError} from "../error.ts";
+import {NotFoundError, BadRequestError} from "../http/error.ts";
 
 export class InvalidResourceError extends Error {}
 

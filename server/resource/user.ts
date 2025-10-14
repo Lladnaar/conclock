@@ -1,7 +1,7 @@
 import express from "express";
 import type {ResourceId, ResourceContent} from "./resource.ts";
 import {ResourceFactory, InvalidResourceError} from "./resource.ts";
-import {Rest} from "./rest.ts";
+import {Rest} from "../http/rest.ts";
 
 // Types
 

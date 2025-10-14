@@ -2,12 +2,12 @@
 
 import express from "express";
 import config from "./config.ts";
-import apiRouter from "./api.ts";
+import apiRouter from "./resource/api.ts";
 import timeRouter from "./resource/time.ts";
 import userRouter from "./resource/user.ts";
 import eventRouter from "./resource/event.ts";
-import {errorHandler, NotFoundError} from "./error.ts";
-import debugMessages from "./debug.ts";
+import {errorHandler, NotFoundError} from "./http/error.ts";
+import debugMessages from "./http/debug.ts";
 
 // Server
 
