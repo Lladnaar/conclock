@@ -15,7 +15,7 @@ describe("Postman event sequence test", () => {
         id: "EVENTID",
         url: "URL",
         name: "Testercon",
-        startDate: "Sep 13 2025",
+        startDate: "2025-09-13",
         endDate: "2025-09-20",
     };
 

@@ -3,14 +3,17 @@ import * as data from "../data/redis.ts";
 export class InvalidResourceError extends Error {}
 export class MissingResourceError extends Error {}
 
-export type ResourceId = {
+export type Id = {
     id: string;
     url?: string;
 };
 
-export type ResourceContent = {name: string};
+export type Content = {
+    name: string;
+    [key: string]: unknown;
+};
 
-export type Resource = ResourceId & ResourceContent;
+export type Resource = Id & Content;
 
 export class ResourceFactory {
     type: string;
@@ -19,21 +22,21 @@ export class ResourceFactory {
         this.type = type;
     }
 
-    newId(id: string): ResourceId { return {id}; }
+    newId(id: string): Id { return {id}; }
 
-    newResource(id: ResourceId, content: ResourceContent): Resource { return {...id, ...content}; }
+    newResource(id: Id, content: Content): Resource { return {...id, ...content}; }
 
-    newContent(content: object): ResourceContent {
+    newContent(content: object): Content {
         if (!this.isValid(content)) throw new InvalidResourceError("Invalid resource");
 
         return {name: content.name};
     }
 
-    isValid(item: object): item is ResourceContent {
+    isValid(item: object): item is Content {
         return ("name" in item && typeof item.name === "string");
     }
 
-    async loadAll(): Promise<ResourceId[]> {
+    async loadAll(): Promise<Id[]> {
         const ids = await data.list(this.type);
         return ids.map(id => this.newId(id));
     }
@@ -68,7 +71,7 @@ export class ResourceFactory {
         return undefined;
     }
 
-    toRest(item: ResourceId): object {
+    toRest(item: Id): object {
         return {
             id: item.id,
             url: `/api/${this.type}/${item.id}`,
@@ -76,7 +79,7 @@ export class ResourceFactory {
         };
     }
 
-    toData(item: ResourceContent): data.Record {
-            return this.newContent(item);
+    toData(item: Content): data.Record {
+        return {name: item.name};
     }
 }
