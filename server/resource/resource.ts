@@ -44,7 +44,7 @@ export class ResourceFactory {
             return this.newResource(this.newId(id), this.newContent(content));
         }
         catch (error) {
-            if (error instanceof data.NotFoundError)
+            if (error instanceof data.LookupError)
                 throw new NotFoundError(error.message);
             if (error instanceof BadRequestError)
                 throw new Error(error.message);
@@ -78,7 +78,7 @@ export class ResourceFactory {
         };
     }
 
-    toData(item: ResourceContent): object {
-        return this.newContent(item);
+    toData(item: ResourceContent): data.Record {
+            return this.newContent(item);
     }
 }
