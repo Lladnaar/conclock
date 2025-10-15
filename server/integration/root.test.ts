@@ -12,6 +12,7 @@ describe("Root", () => {
         expect(response.status).toBe(http.OK);
         expect(response.data).toHaveProperty("time");
         expect(response.data).toHaveProperty("user");
+        expect(response.data).toHaveProperty("login");
         expect(response.data).toHaveProperty("event");
     });
 });
