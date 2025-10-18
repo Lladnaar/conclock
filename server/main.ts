@@ -1,6 +1,7 @@
 // Core HTTP server definition
 
 import express from "express";
+import cookieParser from "cookie-parser";
 import config from "./config.ts";
 import apiRouter from "./resource/api.ts";
 import timeRouter from "./resource/time.ts";
@@ -17,6 +18,7 @@ const server = express();
 // Middleware
 
 server.use(express.json());
+server.use(cookieParser());
 if (config.server.debug) server.use(debugMessages);
 
 // Resources

@@ -96,6 +96,14 @@ export class UserFactory extends ResourceFactory {
         else
             return false;
     }
+
+    async find(property: string, value: string) {
+        const userId = await data.find(this.type, property, value);
+        if (userId)
+            return this.newId(userId);
+        else
+            return null;
+    }
 }
 
 // Rest

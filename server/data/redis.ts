@@ -83,6 +83,19 @@ export async function update(type: string, id: string, record: Record): Promise<
     await set(type, id, updatedRecord);
 }
 
+export async function find(type: string, property: string, value: Value): Promise<string | null> {
+    const matchKey = new Key("*", type);
+    for await (const scanKeys of client.scanIterator({MATCH: matchKey.key()})) {
+        for (const scanKey of scanKeys) {
+            const key = new Key(scanKey);
+            const item = await get(type, key.id);
+            if (property in item && item[property] === value)
+                return key.id;
+        }
+    }
+    return null;
+}
+
 export async function del(type: string, id: string): Promise<void> {
     const key = new Key(id, type);
     await client.del(key.key());

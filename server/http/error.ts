@@ -18,6 +18,9 @@ export class BadRequestError extends HttpError {
 export class NotFoundError extends HttpError {
     constructor(message: string, type?: string) { super(http.NOT_FOUND, message, type); }
 }
+export class UnauthorisedError extends HttpError {
+    constructor(message: string, type?: string) { super(http.UNAUTHORIZED, message, type); }
+}
 
 function sendError(res: express.Response, error: HttpError) {
     if (error.type === "application/json") {
