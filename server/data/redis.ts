@@ -77,6 +77,12 @@ export async function set(type: string, id: string, record: Record): Promise<voi
     await client.set(key.key(), jsonContent);
 }
 
+export async function update(type: string, id: string, record: Record): Promise<void> {
+    const existingRecord = await get(type, id);
+    const updatedRecord = {...existingRecord, ...record};
+    await set(type, id, updatedRecord);
+}
+
 export async function del(type: string, id: string): Promise<void> {
     const key = new Key(id, type);
     await client.del(key.key());

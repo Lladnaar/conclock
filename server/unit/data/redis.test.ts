@@ -68,6 +68,15 @@ describe("Redis", () => {
         expect(updated).toEqual({a: 2, b: 3});
     });
 
+    test("Update merges with existing record", async () => {
+        const id = "66666666-6666-6666-6666-666666666666";
+        vi.mocked(uuid).mockReturnValue(id as unknown as Buffer);
+        await data.add("test", {a: 1, b: 2});
+        await data.update("test", id, {b: 3, c: 4});
+        const updated = await data.get("test", id);
+        expect(updated).toEqual({a: 1, b: 3, c: 4});
+    });
+
     test("Del removes a key", async () => {
         const id = "88888888-8888-8888-8888-888888888888";
         vi.mocked(uuid).mockReturnValue(id as unknown as Buffer);
