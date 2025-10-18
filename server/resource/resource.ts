@@ -74,12 +74,16 @@ export class ResourceFactory {
     toRest(item: Id): object {
         return {
             id: item.id,
-            url: `/api/${this.type}/${item.id}`,
+            url: this.makeUrl([item.id]),
             ...(this.isValid(item) ? this.newContent(item) : {}),
         };
     }
 
     toData(item: Content): data.Record {
         return {name: item.name};
+    }
+
+    makeUrl(path: string[]): string {
+        return `/api/${this.type}/${path.join("/")}`;
     }
 }

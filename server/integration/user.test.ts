@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {describe, expect, test, beforeAll} from "vitest";
 import axios from "axios";
 import config from "../config.ts";
@@ -12,12 +13,11 @@ beforeAll(async () => {
 });
 
 describe("Basic edit sequence test", () => {
-    const user = {
+    let user = {
         id: "USERID",
         url: "URL",
         name: "Jane",
         username: "userName",
-        password: "passWord",
     };
 
     test.sequential("POST to create", async () => {
@@ -27,10 +27,10 @@ describe("Basic edit sequence test", () => {
         expect(response.data).toHaveProperty("url");
         expect(response.data).toHaveProperty("name", user.name);
         expect(response.data).toHaveProperty("username", user.username);
-        expect(response.data).toHaveProperty("password", user.password);
+        expect(response.data).toHaveProperty("password");
+        expect(response.data.password).toHaveProperty("url");
 
-        user.id = response.data.id;
-        user.url = response.data.url;
+        user = response.data;
     });
 
     test.sequential("GET to check", async () => {
@@ -41,7 +41,6 @@ describe("Basic edit sequence test", () => {
 
     test.sequential("PUT to update", async () => {
         user.username = "jane42";
-        user.password = "correcthorsebatterystaple";
 
         const response = await axios.put(new URL(user.url, baseUrl).href, user);
         expect(response.status).toBe(http.OK);
@@ -61,5 +60,44 @@ describe("Basic edit sequence test", () => {
 
     test.sequential("GET to find missing", async () => {
         await expect(axios.get(new URL(user.url, baseUrl).href)).rejects.toThrowError(expect.objectContaining({status: http.NOT_FOUND}));
+    });
+});
+
+describe("Password maintenance", () => {
+    let user: Record<string, any> = {
+        name: "Jane",
+        username: "userName",
+    };
+
+    test.sequential("Create user without password", async () => {
+        const response = await axios.post(userUrl, user);
+        expect(response.status).toBe(http.CREATED);
+
+        user = response.data;
+    });
+
+    test.sequential("Change password, without old", async () => {
+        const password = {password: "password1"};
+        const response = await axios.post(new URL(user.password.url, baseUrl).href, password);
+        expect(response.status).toBe(http.OK);
+    });
+
+    test.sequential("Change password, with old", async () => {
+        const password = {oldPassword: "password1", password: "password2"};
+        const response = await axios.post(new URL(user.password.url, baseUrl).href, password);
+        expect(response.status).toBe(http.OK);
+    });
+
+    test.sequential("Change password, with wrong old", async () => {
+        const password = {oldPassword: "password1", password: "password3"};
+        await expect(axios.post(new URL(user.password.url, baseUrl).href, password)).rejects.toThrowError(expect.objectContaining({status: http.BAD_REQUEST}));
+    });
+});
+
+describe("Unhappy paths", () => {
+    test("Create without username", async () => {
+        const user = {name: "Jane"};
+
+        await expect(axios.post(userUrl, user)).rejects.toThrowError(expect.objectContaining({status: http.BAD_REQUEST}));
     });
 });
