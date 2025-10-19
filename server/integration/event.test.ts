@@ -61,6 +61,6 @@ describe("Postman event sequence test", () => {
     });
 
     test.sequential("GET to find missing", async () => {
-        await expect(axios.get(new URL(event.url, baseUrl).href)).rejects.toThrowError(expect.objectContaining({status: 404}));
+        await expect(axios.get(new URL(event.url, baseUrl).href)).rejects.toThrowError(expect.objectContaining({status: http.NOT_FOUND}));
     });
 });

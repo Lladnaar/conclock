@@ -12,6 +12,7 @@ function getAll(req: express.Request, res: express.Response) {
     res.send({
         time: {url: `${req.baseUrl}/time`},
         user: {url: `${req.baseUrl}/user`},
+        login: {url: `${req.baseUrl}/login`},
         event: {url: `${req.baseUrl}/event`},
     });
 }
