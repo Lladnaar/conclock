@@ -4,14 +4,14 @@ import axios from "axios";
 import config from "../config.ts";
 import {StatusCodes as http} from "http-status-codes";
 
-const baseUrl = `http://localhost:${config.server.port}/api`;
+function makeUrl(url: string) { return new URL(url, `http://localhost:${config.server.port}/`).href; }
 let userUrl: string;
 let loginUrl: string;
 
 beforeAll(async () => {
-    const response = await axios.get(baseUrl);
-    userUrl = new URL(response.data.user.url, baseUrl).href;
-    loginUrl = new URL(response.data.login.url, baseUrl).href;
+    const response = await axios.get(makeUrl("api"));
+    userUrl = makeUrl(response.data.user.url);
+    loginUrl = makeUrl(response.data.login.url);
 });
 
 describe("Standard user authorisation test", () => {
@@ -25,7 +25,7 @@ describe("Standard user authorisation test", () => {
     const password2 = "rightponycapacitornail";
 
     test.sequential("POST to create", async () => {
-        const response = await axios.post(userUrl, user);
+        const response = await axios.post(userUrl, userData);
         expect(response.status).toBe(http.CREATED);
         expect(response.data).toHaveProperty("id");
         expect(response.data).toHaveProperty("url");
@@ -43,7 +43,7 @@ describe("Standard user authorisation test", () => {
     });
 
     test.sequential("POST to set password", async () => {
-        const url = new URL(user.password.url, userUrl).href;
+        const url = makeUrl(user.password.url);
         const response = await axios.post(url, {password: password1});
         expect(response.status).toBe(http.OK);
     });
@@ -56,7 +56,7 @@ describe("Standard user authorisation test", () => {
     });
 
     test.sequential("POST to change password", async () => {
-        const url = new URL(user.password.url, userUrl).href;
+        const url = makeUrl(user.password.url);
         const response = await axios.post(url, {oldPassword: password1, password: password2});
         expect(response.status).toBe(http.OK);
     });
@@ -74,7 +74,7 @@ describe("Standard user authorisation test", () => {
     });
 
     test.sequential("DELETE to remove", async () => {
-        const response = await axios.delete(new URL(user.url!, baseUrl).href);
+        const response = await axios.delete(makeUrl(user.url!));
         expect(response.status).toBe(http.NO_CONTENT);
     });
 });
@@ -128,7 +128,7 @@ describe("All login methods", async () => {
     });
 
     test.sequential("DELETE to remove", async () => {
-        const response = await axios.delete(new URL(user.url!, baseUrl).href);
+        const response = await axios.delete(makeUrl(user.url!));
         expect(response.status).toBe(http.NO_CONTENT);
     });
 });

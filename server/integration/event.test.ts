@@ -3,12 +3,12 @@ import axios from "axios";
 import config from "../config.ts";
 import {StatusCodes as http} from "http-status-codes";
 
-const baseUrl = `http://localhost:${config.server.port}/api`;
+function makeUrl(url: string) { return new URL(url, `http://localhost:${config.server.port}/`).href; }
 let eventUrl: string;
 
 beforeAll(async () => {
-    const response = await axios.get(baseUrl);
-    eventUrl = new URL(response.data.event.url, baseUrl).href;
+    const response = await axios.get(makeUrl("api"));
+    eventUrl = makeUrl(response.data.event.url);
 });
 
 describe("Postman event sequence test", () => {
@@ -21,7 +21,7 @@ describe("Postman event sequence test", () => {
     };
 
     test.sequential("POST to create", async () => {
-        const response = await axios.post(eventUrl, event);
+        const response = await axios.post(eventUrl, eventData);
         expect(response.status).toBe(http.CREATED);
         expect(response.data).toHaveProperty("id");
         expect(response.data).toHaveProperty("url");
@@ -34,7 +34,7 @@ describe("Postman event sequence test", () => {
     });
 
     test.sequential("GET to check", async () => {
-        const response = await axios.get(new URL(event.url, baseUrl).href);
+        const response = await axios.get(makeUrl(event.url));
         expect(response.status).toBe(http.OK);
         expect(response.data).toEqual(event);
     });
@@ -44,7 +44,7 @@ describe("Postman event sequence test", () => {
         event.startDate = "2026-09-13";
         event.endDate = "2026-09-17";
 
-        const response = await axios.put(new URL(event.url, baseUrl).href, event);
+        const response = await axios.put(makeUrl(event.url), event);
         expect(response.status).toBe(http.OK);
         expect(response.data).toEqual(event);
     });
@@ -56,11 +56,11 @@ describe("Postman event sequence test", () => {
     });
 
     test.sequential("DELETE to remove", async () => {
-        const response = await axios.delete(new URL(event.url, baseUrl).href);
+        const response = await axios.delete(makeUrl(event.url));
         expect(response.status).toBe(http.NO_CONTENT);
     });
 
     test.sequential("GET to find missing", async () => {
-        await expect(axios.get(new URL(event.url, baseUrl).href)).rejects.toThrowError(expect.objectContaining({status: http.NOT_FOUND}));
+        await expect(axios.get(makeUrl(event.url))).rejects.toThrowError(expect.objectContaining({status: http.NOT_FOUND}));
     });
 });

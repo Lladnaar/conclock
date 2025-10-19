@@ -3,12 +3,12 @@ import axios from "axios";
 import config from "../config.ts";
 import {StatusCodes as http} from "http-status-codes";
 
-const baseUrl = `http://localhost:${config.server.port}/api`;
+function makeUrl(url: string) { return new URL(url, `http://localhost:${config.server.port}/`).href; }
 let timeUrl: string;
 
 beforeAll(async () => {
-    const response = await axios.get(baseUrl);
-    timeUrl = new URL(response.data.time.url, baseUrl).href;
+    const response = await axios.get(makeUrl("api"));
+    timeUrl = makeUrl(response.data.time.url);
 });
 
 describe("Time", () => {

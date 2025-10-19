@@ -4,12 +4,12 @@ import axios from "axios";
 import config from "../config.ts";
 import {StatusCodes as http} from "http-status-codes";
 
-const baseUrl = `http://localhost:${config.server.port}/api`;
+function makeUrl(url: string) { return new URL(url, `http://localhost:${config.server.port}/`).href; }
 let userUrl: string;
 
 beforeAll(async () => {
-    const response = await axios.get(baseUrl);
-    userUrl = new URL(response.data.user.url, baseUrl).href;
+    const response = await axios.get(makeUrl("api"));
+    userUrl = makeUrl(response.data.user.url);
 });
 
 describe("Basic edit sequence test", () => {
@@ -21,7 +21,7 @@ describe("Basic edit sequence test", () => {
     };
 
     test.sequential("POST to create", async () => {
-        const response = await axios.post(userUrl, user);
+        const response = await axios.post(userUrl, userData);
         expect(response.status).toBe(http.CREATED);
         expect(response.data).toHaveProperty("id");
         expect(response.data).toHaveProperty("url");
@@ -34,7 +34,7 @@ describe("Basic edit sequence test", () => {
     });
 
     test.sequential("GET to check", async () => {
-        const response = await axios.get(new URL(user.url, baseUrl).href);
+        const response = await axios.get(makeUrl(user.url));
         expect(response.status).toBe(http.OK);
         expect(response.data).toEqual(user);
     });
@@ -42,7 +42,7 @@ describe("Basic edit sequence test", () => {
     test.sequential("PUT to update", async () => {
         user.username = "jane42";
 
-        const response = await axios.put(new URL(user.url, baseUrl).href, user);
+        const response = await axios.put(makeUrl(user.url), user);
         expect(response.status).toBe(http.OK);
         expect(response.data).toEqual(user);
     });
@@ -54,12 +54,12 @@ describe("Basic edit sequence test", () => {
     });
 
     test.sequential("DELETE to remove", async () => {
-        const response = await axios.delete(new URL(user.url, baseUrl).href);
+        const response = await axios.delete(makeUrl(user.url));
         expect(response.status).toBe(http.NO_CONTENT);
     });
 
     test.sequential("GET to find missing", async () => {
-        await expect(axios.get(new URL(user.url, baseUrl).href)).rejects.toThrowError(expect.objectContaining({status: http.NOT_FOUND}));
+        await expect(axios.get(makeUrl(user.url))).rejects.toThrowError(expect.objectContaining({status: http.NOT_FOUND}));
     });
 });
 
@@ -78,19 +78,19 @@ describe("Password maintenance", () => {
 
     test.sequential("Change password, without old", async () => {
         const password = {password: "password1"};
-        const response = await axios.post(new URL(user.password.url, baseUrl).href, password);
+        const response = await axios.post(makeUrl(user.password.url), password);
         expect(response.status).toBe(http.OK);
     });
 
     test.sequential("Change password, with old", async () => {
         const password = {oldPassword: "password1", password: "password2"};
-        const response = await axios.post(new URL(user.password.url, baseUrl).href, password);
+        const response = await axios.post(makeUrl(user.password.url), password);
         expect(response.status).toBe(http.OK);
     });
 
     test.sequential("Change password, with wrong old", async () => {
         const password = {oldPassword: "password1", password: "password3"};
-        await expect(axios.post(new URL(user.password.url, baseUrl).href, password)).rejects.toThrowError(expect.objectContaining({status: http.BAD_REQUEST}));
+        await expect(axios.post(makeUrl(user.password.url), password)).rejects.toThrowError(expect.objectContaining({status: http.BAD_REQUEST}));
     });
 });
 

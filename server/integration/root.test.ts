@@ -3,11 +3,11 @@ import axios from "axios";
 import config from "../config.ts";
 import {StatusCodes as http} from "http-status-codes";
 
-const baseUrl = `http://localhost:${config.server.port}/api`;
+function makeUrl(url: string) { return new URL(url, `http://localhost:${config.server.port}/`).href; }
 
 describe("Root", () => {
     test("Core endpoints exist", async () => {
-        const response = await axios.get(baseUrl);
+        const response = await axios.get(makeUrl("api"));
 
         expect(response.status).toBe(http.OK);
         expect(response.data).toHaveProperty("time");
