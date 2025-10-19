@@ -72,6 +72,11 @@ describe("Basic authentication...", () => {
             .rejects.toThrowError(expect.objectContaining({status: http.UNAUTHORIZED}));
     });
 
+    test.runIf(user).sequential("...token revoked", async () => {
+        const response = await axios.delete(makeUrl(loginUrl), {auth: {username: user.username, password: password2}});
+        expect(response.status).toBe(http.NO_CONTENT);
+    });
+
     test.runIf(user).sequential("...user deleted", async () => {
         const response = await axios.delete(makeUrl(user.url!));
         expect(response.status).toBe(http.NO_CONTENT);
@@ -124,6 +129,11 @@ describe("Mixed authentication...", async () => {
     test.runIf(user).sequential("...fails with incorrect bearer token", async () => {
         await expect(axios.post(loginUrl, {}, {headers: {Authorization: "Bearer token"}}))
             .rejects.toThrowError(expect.objectContaining({status: http.UNAUTHORIZED}));
+    });
+
+    test.runIf(user).sequential("...token revoked", async () => {
+        const response = await axios.delete(makeUrl(loginUrl), {auth: {username: user.username, password: user.password}});
+        expect(response.status).toBe(http.NO_CONTENT);
     });
 
     test.runIf(user).sequential("...user deleted", async () => {

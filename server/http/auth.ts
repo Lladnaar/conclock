@@ -77,6 +77,17 @@ export class AuthRest {
             .cookie("Session-Token", token.id)
             .json(this.tokenFactory.toRest(token));
     }
+
+    async revoke(req: UserRequest, res: express.Response) {
+        const tokenId = await this.tokenFactory.find("userId", req.userId!);
+        if (tokenId)
+            await this.tokenFactory.delete(tokenId.id);
+
+        res
+            .status(http.NO_CONTENT)
+            .cookie("Session-Token", undefined)
+            .send();
+    }
 }
 
 // Router
@@ -86,5 +97,6 @@ const authRest = new AuthRest();
 const router = express.Router();
 router.use("/", authRest.authenticate.bind(authRest));
 router.post("/", authRest.login.bind(authRest));
+router.delete("/", authRest.revoke.bind(authRest));
 
 export default router;

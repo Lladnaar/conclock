@@ -93,6 +93,11 @@ describe("Password...", () => {
         const password = {oldPassword: password1, password: password2};
         await expect(axios.post(makeUrl(user.password.url), password)).rejects.toThrowError(expect.objectContaining({status: http.BAD_REQUEST}));
     });
+
+    test.runIf(user).sequential("...deleted", async () => {
+        const response = await axios.delete(makeUrl(user.url));
+        expect(response.status).toBe(http.NO_CONTENT);
+    });
 });
 
 describe("System fails...", () => {
