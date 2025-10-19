@@ -101,15 +101,6 @@ export async function del(type: string, id: string): Promise<void> {
     await client.del(key.key());
 }
 
-export async function useLiveDb() {
-    await client.select(0);
-}
-
-export async function useTestDb() {
-    await client.select(1);
-    await client.flushDb();
-}
-
 export const __test = {
     client,
 };
