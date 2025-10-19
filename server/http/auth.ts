@@ -3,6 +3,7 @@ import auth from "basic-auth";
 import {UnauthorisedError} from "../http/error.ts";
 import {UserFactory} from "../resource/user.ts";
 import {TokenFactory, type TokenResource} from "../resource/token.ts";
+import {StatusCodes as http} from "http-status-codes";
 
 const BEARER_PREFIX = "Bearer ";
 
@@ -72,7 +73,7 @@ export class AuthRest {
             }) as TokenResource;
 
         res
-            .status(200)
+            .status(http.OK)
             .cookie("Session-Token", token.id)
             .json(this.tokenFactory.toRest(token));
     }

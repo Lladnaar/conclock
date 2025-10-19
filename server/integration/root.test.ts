@@ -5,8 +5,8 @@ import {StatusCodes as http} from "http-status-codes";
 
 function makeUrl(url: string) { return new URL(url, `http://localhost:${config.server.port}/`).href; }
 
-describe("Root", () => {
-    test("Core endpoints exist", async () => {
+describe("Root...", () => {
+    test("...endpoints exist", async () => {
         const response = await axios.get(makeUrl("api"));
 
         expect(response.status).toBe(http.OK);
