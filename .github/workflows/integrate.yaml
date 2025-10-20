@@ -1,10 +1,10 @@
 name: integrate
 
 on:
-  pull_request:
-    branches: [main]
+    pull_request:
+        branches: [main]
 
-jobs:
+jobs:       
   style:
     name: Style
     timeout-minutes: 2
@@ -24,7 +24,6 @@ jobs:
 
       - name: Lint project
         run: npm run lint
-
 
   server-test:
     name: Server Tests
