@@ -22,9 +22,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Select branch
+        run: git switch ${{github.head_ref}}
+
+      - name: Auto format
+        run: npm run format
+
+      - name: Commit and push if changed
+        run: git diff --quiet || git -c user.name=integrate -c user.email=integrate@github commit -a -m "Automatic format" && git push
+
       - name: Lint project
         run: npm run lint
-
 
   server-test:
     name: Server Tests

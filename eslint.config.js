@@ -36,14 +36,6 @@ export default defineConfig([
             "stylistic/quotes":                 ["warn", "double"], // Use double quotes
             "stylistic/semi":                   ["warn", "always"], // Require optional semicolons
 
-//          "stylistic/arrow-parens":       ["warn"], // Require parentheses around arrow function arguments
-//          "stylistic/new-parens":         ["warn"], // Enforce or disallow parentheses when invoking a constructor with no arguments
-//          "stylistic/no-confusing-arrow": ["warn"], // Disallow arrow functions where they could be confused with comparisons
-//          "stylistic/no-extra-parens":    ["warn"], // Disallow unnecessary parentheses
-//          "stylistic/no-mixed-operators": ["warn"], // Disallow mixed binary operators
-//          "stylistic/wrap-regex":         ["warn"], // Require parenthesis around regex literals
-//          "stylistic/wrap-iife":          ["warn"], // Require parentheses around immediate `function` invocations
-
             // Symbol location
             "stylistic/brace-style":        ["warn", "stroustrup", {allowSingleLine: true}], // Brace style
             "stylistic/comma-style":        ["warn", "last"], // Commas on line ends
@@ -68,21 +60,17 @@ export default defineConfig([
             // Other spacing (fix only)
             "stylistic/arrow-spacing":                 [fixOnly, bothSides], // Space arround arrow functions
             "stylistic/comma-spacing":                 [fixOnly, onlyAfter], // Space after commas
-// ?        "stylistic/generator-star-spacing":        [fixOnly], // Enforce consistent spacing around `*` operators in generator functions
             "stylistic/key-spacing":                   [fixOnly, {mode: "minimum"}], // Space(s) after property colon
             "stylistic/keyword-spacing":               [fixOnly, bothSides], // Space arround keywords
-//          "stylistic/no-multi-spaces":               [fixOnly], // Disallow multiple spaces
             "stylistic/no-whitespace-before-property": [fixOnly], // Disallow whitespace before properties
             "stylistic/rest-spread-spacing":           [fixOnly, "never"], // No space after spread
             "stylistic/semi-spacing":                  [fixOnly, onlyAfter], // Spaces only after semicolons
             "stylistic/space-infix-ops":               [fixOnly], // Spacing around operators
             "stylistic/space-unary-ops":               [fixOnly, {words: true, nonwords: false}], // No space for symbol unaries
             "stylistic/switch-colon-spacing":          [fixOnly, onlyAfter], // Spaces only after switch colon
-// ?        "stylistic/template-tag-spacing":          [fixOnly], // Require or disallow spacing between template tags and their literals
             "stylistic/type-annotation-spacing":       [fixOnly, onlyAfter], // Spaces only after type colon
             "stylistic/type-generic-spacing":          [fixOnly], // Spacing inside generics
             "stylistic/type-named-tuple-spacing":      [fixOnly], // Spacing for named tuple
-// ?        "stylistic/yield-star-spacing":            [fixOnly], // Require or disallow spacing around the `*` in `yield*` expressions
 
             // Line breaks (fix only)
             "stylistic/array-bracket-newline":    [fixOnly, "consistent"], // Bracket newlines if multiline
@@ -97,26 +85,12 @@ export default defineConfig([
             "stylistic/padded-blocks":                  [fixOnly, "never"], // No padding inside blocks
 
             "stylistic/lines-between-class-members":     [fixOnly, {enforce: [{blankLine: "never", prev: "field", next: "field"}]}], // Require or disallow an empty line between class members
-//          "stylistic/max-statements-per-line":         [fixOnly], // Enforce a maximum number of statements allowed per line
-//          "stylistic/newline-per-chained-call":        [fixOnly], // Require a newline after each call in a method chain
-//          "stylistic/one-var-declaration-per-line":    [fixOnly], // Require or disallow newlines around variable declarations
-//          "stylistic/padding-line-between-statements": [fixOnly], // Require or disallow padding lines between statements
-
-            // Comments (fix only)
-//          "stylistic/lines-around-comment":    [fixOnly], // Require empty lines around comments
-//          "stylistic/line-comment-position":   [fixOnly], // Enforce position of line comments
-//          "stylistic/multiline-comment-style": [fixOnly], // Enforce a particular style for multiline comments
-//          "stylistic/spaced-comment":          [fixOnly], // Enforce consistent spacing after the `//` or `/*` in a comment
 
             // File format (fix only)
             "stylistic/eol-last":                 [fixOnly, "always"], // Files end with EOL
             "stylistic/indent":                   [fixOnly, 4, {ignoreComments: true}], // Enforce consistent indentation
             "stylistic/indent-binary-ops":        [fixOnly, 4], // Indentation for binary operators
-//          "stylistic/linebreak-style":          [fixOnly], // Enforce consistent linebreak style
-//          "stylistic/max-len":                  [fixOnly], // Enforce a maximum line length
-//          "stylistic/no-mixed-spaces-and-tabs": [fixOnly], // Disallow mixed spaces and tabs for indentation
             "stylistic/no-multiple-empty-lines":  [fixOnly, {max: 1, maxEOF: 0}], // Minimise empty lines
-//          "stylistic/no-tabs":                  [fixOnly], // Disallow all tabs
             "stylistic/no-trailing-spaces":       [fixOnly], // Disallow trailing whitespace at the end of lines
         },
     },
