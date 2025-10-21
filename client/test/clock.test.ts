@@ -3,7 +3,7 @@ import {test, expect} from "@playwright/test";
 test.describe("Clock...", () => {
     test("...is visible", async ({page}) => {
         await page.goto("http://localhost:8080/");
-        
+
         // navigate to Clock
         await page.getByTestId("app.clock-link").click();
         await expect(page.getByTestId("status.message-text")).toBeVisible();
@@ -15,14 +15,14 @@ test.describe("Clock...", () => {
 test.describe("Settings...", () => {
     test("...is accessible and dismissible by keyboard", async ({page}) => {
         await page.goto("http://localhost:8080/clock.html");
-        
+
         // Settings appear
         await page.keyboard.press("Escape");
         await expect(page.getByTestId("setting.size-select")).toBeVisible();
         await expect(page.getByTestId("setting.hour-select")).toBeVisible();
         await expect(page.getByTestId("setting.timezone-select")).toBeVisible();
         await expect(page.getByTestId("setting.close-button")).toBeVisible();
-        
+
         // Settings disappear
         await page.keyboard.press("Escape");
         await expect(page.getByTestId("setting.size-select")).not.toBeVisible();
