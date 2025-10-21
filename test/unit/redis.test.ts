@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {describe, expect, test, vi, beforeEach} from "vitest";
 import {v7 as uuid} from "uuid";
-import * as data from "../../data/redis.ts";
+import * as data from "../../server/data/redis.ts";
 
 vi.mock("uuid", () => ({
     v7: vi.fn(),

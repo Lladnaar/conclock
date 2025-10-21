@@ -1,6 +1,7 @@
 import {describe, expect, test, beforeAll} from "vitest";
 import axios from "axios";
-import config from "../config.ts";
+import config from "../../server/config.ts";
+
 import {StatusCodes as http} from "http-status-codes";
 
 function makeUrl(url: string) { return new URL(url, `http://localhost:${config.server.port}/`).href; }

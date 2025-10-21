@@ -2,6 +2,6 @@ import {defineConfig} from "vite";
 
 export default defineConfig({
     test: {
-        include: ["server/**/*.test.ts"],
+        include: ["test/{api,integration,unit}/*.test.ts"],
     },
 });
