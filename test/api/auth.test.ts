@@ -1,90 +1,97 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import {describe, expect, test, beforeAll} from "vitest";
-import axios from "axios";
-import config from "../../server/config.ts";
-
+import {test, expect} from "@playwright/test";
 import {StatusCodes as http} from "http-status-codes";
 
-function makeUrl(url: string) { return new URL(url, `http://localhost:${config.server.port}/`).href; }
+function url(url: string) { return new URL(url, "http://localhost:8080/").href; }
 let userUrl: string;
 let loginUrl: string;
 
-beforeAll(async () => {
-    const response = await axios.get(makeUrl("api"));
-    userUrl = makeUrl(response.data.user.url);
-    loginUrl = makeUrl(response.data.login.url);
+test.beforeAll(async ({request}) => {
+    const response = await request.get(url("api"));
+    const body = await response.json();
+    userUrl = url(body.user.url);
+    loginUrl = url(body.login.url);
 });
 
-describe("Basic authentication...", () => {
+test.describe("Basic authentication...", () => {
+    test.describe.configure({mode: "serial"});
+
     const userData = {
         name: "Basic Auth User",
         username: "basic@auth.user",
     };
-    let user: Record<string, any> = {};
+    type User = {id: string; url: string; name: string; username: string; password: {url: string}};
+    let user: User;
     const password1 = "correcthorsebatterystaple";
     const password2 = "rightponycapacitornail";
 
-    test.sequential("...user created without password", async () => {
-        const response = await axios.post(userUrl, userData);
-        expect(response.status).toBe(http.CREATED);
-        expect(response.data).toHaveProperty("id");
-        expect(response.data).toHaveProperty("url");
-        expect(response.data).toHaveProperty("name", userData.name);
-        expect(response.data).toHaveProperty("username", userData.username);
-        expect(response.data).toHaveProperty("password");
-        expect(response.data.password).toHaveProperty("url");
+    test("...user created without password", async ({request}) => {
+        const response = await request.post(userUrl, {data: userData});
+        expect(response.status()).toBe(http.CREATED);
 
-        user = response.data;
+        const body = await response.json();
+        expect(body).toHaveProperty("id");
+        expect(body).toHaveProperty("url");
+        expect(body).toHaveProperty("name", userData.name);
+        expect(body).toHaveProperty("username", userData.username);
+        expect(body).toHaveProperty("password");
+        expect(body.password).toHaveProperty("url");
+
+        user = body;
     });
 
-    test.runIf(user).sequential("...login fails before password set", async () => {
-        await expect(axios.post(loginUrl, {}, {auth: {username: user.username, password: password1}}))
-            .rejects.toThrowError(expect.objectContaining({status: http.UNAUTHORIZED}));
+    test("...login fails before password set", async ({browser}) => {
+        const context = await browser.newContext({httpCredentials: {username: user.username, password: password1, send: "always"}});
+        const response = await context.request.post(loginUrl);
+        expect(response.status()).toBe(http.UNAUTHORIZED);
     });
 
-    test.runIf(user).sequential("...password set", async () => {
-        const url = makeUrl(user.password.url);
-        const response = await axios.post(url, {password: password1});
-        expect(response.status).toBe(http.OK);
+    test("...password set", async ({request}) => {
+        const passwordUrl = url(user.password.url);
+        const response = await request.post(passwordUrl, {data: {password: password1}});
+        expect(response.status()).toBe(http.OK);
     });
 
-    test.runIf(user).sequential("...login succeeds with password", async () => {
-        const response = await axios.post(loginUrl, {}, {auth: {username: user.username, password: password1}});
-        expect(response.status).toBe(http.OK);
-        expect(response.headers).toHaveProperty("set-cookie");
-        expect(response.headers["set-cookie"]).toEqual(expect.arrayContaining([expect.stringContaining("Session-Token=")]));
+    test("...login succeeds with password", async ({browser}) => {
+        const context = await browser.newContext({httpCredentials: {username: user.username, password: password1, send: "always"}});
+        const response = await context.request.post(loginUrl);
+        expect(response.status()).toBe(http.OK);
+        expect(await context.cookies()).toEqual(expect.arrayContaining([expect.objectContaining({name: "Session-Token"})]));
     });
 
-    test.runIf(user).sequential("...password changed", async () => {
-        const url = makeUrl(user.password.url);
-        const response = await axios.post(url, {oldPassword: password1, password: password2});
-        expect(response.status).toBe(http.OK);
+    test("...password changed", async ({request}) => {
+        const passwordUrl = url(user.password.url);
+        const response = await request.post(passwordUrl, {data: {password: password2}});
+        expect(response.status()).toBe(http.OK);
     });
 
-    test.runIf(user).sequential("...login succeeds with new password", async () => {
-        const response = await axios.post(loginUrl, {}, {auth: {username: user.username, password: password2}});
-        expect(response.status).toBe(http.OK);
-        expect(response.headers).toHaveProperty("set-cookie");
-        expect(response.headers["set-cookie"]).toEqual(expect.arrayContaining([expect.stringContaining("Session-Token=")]));
+    test("...login succeeds with new password", async ({browser}) => {
+        const context = await browser.newContext({httpCredentials: {username: user.username, password: password2, send: "always"}});
+        const response = await context.request.post(loginUrl);
+        expect(response.status()).toBe(http.OK);
+        expect(await context.cookies()).toEqual(expect.arrayContaining([expect.objectContaining({name: "Session-Token"})]));
     });
 
-    test.runIf(user).sequential("...login fails with old password", async () => {
-        await expect(axios.post(loginUrl, {}, {auth: {username: user.username, password: password1}}))
-            .rejects.toThrowError(expect.objectContaining({status: http.UNAUTHORIZED}));
+    test("...login fails with old password", async ({browser}) => {
+        const context = await browser.newContext({httpCredentials: {username: user.username, password: password1, send: "always"}});
+        const response = await context.request.post(loginUrl);
+        expect(response.status()).toBe(http.UNAUTHORIZED);
     });
 
-    test.runIf(user).sequential("...token revoked", async () => {
-        const response = await axios.delete(makeUrl(loginUrl), {auth: {username: user.username, password: password2}});
-        expect(response.status).toBe(http.NO_CONTENT);
+    test("...token revoked", async ({browser}) => {
+        const context = await browser.newContext({httpCredentials: {username: user.username, password: password2, send: "always"}});
+        const response = await context.request.delete(url(loginUrl));
+        expect(response.status()).toBe(http.NO_CONTENT);
     });
 
-    test.runIf(user).sequential("...user deleted", async () => {
-        const response = await axios.delete(makeUrl(user.url!));
-        expect(response.status).toBe(http.NO_CONTENT);
+    test("...user deleted", async ({request}) => {
+        const response = await request.delete(url(user.url!));
+        expect(response.status()).toBe(http.NO_CONTENT);
     });
 });
 
-describe("Mixed authentication...", async () => {
+test.describe("Mixed authentication...", () => {
+    test.describe.configure({mode: "serial"});
+
     const user = {
         id: "",
         url: "",
@@ -92,53 +99,73 @@ describe("Mixed authentication...", async () => {
         username: "mixed@auth.user",
         password: "correcthorsebatterystaple",
     };
-    let token: string;
+    let apiToken: string;
 
-    test.sequential("...user created", async () => {
-        const response = await axios.post(userUrl, user);
-        expect(response.status).toBe(http.CREATED);
-        user.url = response.data.url;
+    test("...user created", async ({request}) => {
+        const response = await request.post(userUrl, {data: user});
+        expect(response.status()).toBe(http.CREATED);
+
+        const body = await response.json();
+        user.url = body.url;
     });
 
-    test.runIf(user).sequential("...succeeds with correct basic auth", async () => {
-        const response = await axios.post(loginUrl, {}, {auth: {username: user.username, password: user.password}});
-        expect(response.status).toBe(http.OK);
-        expect(response.data).toHaveProperty("sessionToken");
-        token = response.data.sessionToken;
+    test("...succeeds with correct basic auth", async ({browser}) => {
+        const context = await browser.newContext({httpCredentials: {username: user.username, password: user.password, send: "always"}});
+        const response = await context.request.post(loginUrl);
+        expect(response.status()).toBe(http.OK);
+
+        const body = await response.json();
+        expect(body).toHaveProperty("sessionToken");
+        apiToken = body.sessionToken;
     });
 
-    test.runIf(user).sequential("...fails with wrong basic auth", async () => {
-        await expect(axios.post(loginUrl, {}, {auth: {username: user.username, password: "password"}}))
-            .rejects.toThrowError(expect.objectContaining({status: http.UNAUTHORIZED}));
+    test("...fails with wrong basic auth", async ({browser}) => {
+        const context = await browser.newContext({httpCredentials: {username: user.username, password: "password", send: "always"}});
+        const response = await context.request.post(loginUrl);
+        expect(response.status()).toBe(http.UNAUTHORIZED);
     });
 
-    test.runIf(user).sequential("...succeeds with correct cookie token", async () => {
-        const response = await axios.post(loginUrl, {}, {headers: {Cookie: `Session-Token=${token}`}});
-        expect(response.status).toBe(http.OK);
+    test("...succeeds with correct cookie token", async ({context}) => {
+        await context.addCookies([{name: "Session-Token", value: apiToken, domain: "localhost", path: "/"}]);
+        const response = await context.request.post(loginUrl);
+        expect(response.status()).toBe(http.OK);
     });
 
-    test.runIf(user).sequential("...fails with wrong cookie token", async () => {
-        await expect(axios.post(loginUrl, {}, {headers: {Cookie: "Session-Token=token"}}))
-            .rejects.toThrowError(expect.objectContaining({status: http.UNAUTHORIZED}));
+    test("...fails with wrong cookie token", async ({context}) => {
+        await context.addCookies([{name: "Session-Token", value: "invalid", domain: "localhost", path: "/"}]);
+        const response = await context.request.post(loginUrl);
+        expect(response.status()).toBe(http.UNAUTHORIZED);
     });
 
-    test.runIf(user).sequential("...succeeds with correct bearer token", async () => {
-        const response = await axios.post(loginUrl, {}, {headers: {Authorization: `Bearer ${token}`}});
-        expect(response.status).toBe(http.OK);
+    test("...succeeds with correct bearer token", async ({request}) => {
+        const response = await request.post(loginUrl, {headers: {Authorization: `Bearer ${apiToken}`}});
+        expect(response.status()).toBe(http.OK);
     });
 
-    test.runIf(user).sequential("...fails with incorrect bearer token", async () => {
-        await expect(axios.post(loginUrl, {}, {headers: {Authorization: "Bearer token"}}))
-            .rejects.toThrowError(expect.objectContaining({status: http.UNAUTHORIZED}));
+    test("...fails with incorrect bearer token", async ({request}) => {
+        const response = await request.post(loginUrl, {headers: {Authorization: "Bearer invalid"}});
+        expect(response.status()).toBe(http.UNAUTHORIZED);
     });
 
-    test.runIf(user).sequential("...token revoked", async () => {
-        const response = await axios.delete(makeUrl(loginUrl), {auth: {username: user.username, password: user.password}});
-        expect(response.status).toBe(http.NO_CONTENT);
+    test("...token revoked", async ({browser}) => {
+        const context = await browser.newContext({httpCredentials: {username: user.username, password: user.password, send: "always"}});
+        const response = await context.request.delete(url(loginUrl));
+        expect(response.status()).toBe(http.NO_CONTENT);
     });
 
-    test.runIf(user).sequential("...user deleted", async () => {
-        const response = await axios.delete(makeUrl(user.url!));
-        expect(response.status).toBe(http.NO_CONTENT);
+    test("...fails with revoked cookie token", async ({context}) => {
+        await context.addCookies([{name: "Session-Token", value: apiToken, domain: "localhost", path: "/"}]);
+        const response = await context.request.post(loginUrl);
+        expect(response.status()).toBe(http.UNAUTHORIZED);
+    });
+
+    test("...fails with revoked bearer token", async ({request}) => {
+        const response = await request.post(loginUrl, {headers: {Authorization: `Bearer ${apiToken}`}});
+        expect(response.status()).toBe(http.UNAUTHORIZED);
+    });
+
+    test("...user deleted", async ({request}) => {
+        const response = await request.delete(url(user.url!));
+        expect(response.status()).toBe(http.NO_CONTENT);
     });
 });

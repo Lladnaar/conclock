@@ -97,6 +97,7 @@ const authRest = new AuthRest();
 const router = express.Router();
 router.use("/", authRest.authenticate.bind(authRest));
 router.post("/", authRest.login.bind(authRest));
+router.get("/", authRest.login.bind(authRest));
 router.delete("/", authRest.revoke.bind(authRest));
 
 export default router;

@@ -1,22 +1,22 @@
-import {describe, expect, test, beforeAll} from "vitest";
-import axios from "axios";
-import config from "../../server/config.ts";
-
+import {test, expect} from "@playwright/test";
 import {StatusCodes as http} from "http-status-codes";
 
-function makeUrl(url: string) { return new URL(url, `http://localhost:${config.server.port}/`).href; }
+function url(url: string) { return new URL(url, "http://localhost:8080/").href; }
 let timeUrl: string;
 
-beforeAll(async () => {
-    const response = await axios.get(makeUrl("api"));
-    timeUrl = makeUrl(response.data.time.url);
+test.beforeAll(async ({request}) => {
+    const response = await request.get(url("api"));
+    const body = await response.json();
+    timeUrl = url(body.time.url);
 });
 
-describe("Time...", () => {
-    test("...reports time", async () => {
-        const response = await axios.get(timeUrl);
-        expect(response.status).toBe(http.OK);
-        expect(response.data).toHaveProperty("time");
-        expect(response.data.time).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
+test.describe("Time...", () => {
+    test("...reports time", async ({request}) => {
+        const response = await request.get(timeUrl);
+        expect(response.status()).toBe(http.OK);
+
+        const body = await response.json();
+        expect(body).toHaveProperty("time");
+        expect(body.time).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
     });
 });

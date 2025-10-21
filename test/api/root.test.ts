@@ -1,19 +1,17 @@
-import {describe, expect, test} from "vitest";
-import axios from "axios";
-import config from "../../server/config.ts";
-
+import {test, expect} from "@playwright/test";
 import {StatusCodes as http} from "http-status-codes";
 
-function makeUrl(url: string) { return new URL(url, `http://localhost:${config.server.port}/`).href; }
+function url(url: string) { return new URL(url, "http://localhost:8080/").href; }
 
-describe("Root...", () => {
-    test("...endpoints exist", async () => {
-        const response = await axios.get(makeUrl("api"));
+test.describe("Root...", () => {
+    test("...endpoints exist", async ({request}) => {
+        const response = await request.get(url("api"));
+        expect(response.status()).toBe(http.OK);
 
-        expect(response.status).toBe(http.OK);
-        expect(response.data).toHaveProperty("time");
-        expect(response.data).toHaveProperty("user");
-        expect(response.data).toHaveProperty("login");
-        expect(response.data).toHaveProperty("event");
+        const body = await response.json();
+        expect(body).toHaveProperty("time");
+        expect(body).toHaveProperty("user");
+        expect(body).toHaveProperty("login");
+        expect(body).toHaveProperty("event");
     });
 });
