@@ -3,7 +3,7 @@ import {test, expect} from "@playwright/test";
 test.describe("Index...", () => {
     test("...is visible", async ({page}) => {
         await page.goto("http://localhost:8080/");
-        
+
         // check elements
         await expect(page.getByTestId("status.message-text")).toBeVisible();
         await expect(page.getByTestId("app.clock-link")).toBeVisible();
@@ -14,7 +14,7 @@ test.describe("Index...", () => {
 });
 
 test.describe("Errors...", () => {
-    test("...when page not found", async ({page, request}) => { 
+    test("...when page not found", async ({page, request}) => {
         await page.goto("http://localhost:8080/missing.html");
         const response = await request.get("http://localhost:8080/missing.html");
 
