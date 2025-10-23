@@ -79,7 +79,7 @@ export class ResourceFactory {
         };
     }
 
-    toData(item: Content): data.Record {
+    toData(item: Content): data.Data {
         return {name: item.name};
     }
 

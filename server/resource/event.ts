@@ -1,64 +1,89 @@
 import express from "express";
-import type {Id, Content} from "./resource.ts";
-import {ResourceFactory, InvalidResourceError} from "./resource.ts";
-import {Rest} from "../http/rest.ts";
+import {BadRequestError, NotFoundError} from "../http/error.ts";
+import * as data from "../data/redis.ts";
+import {StatusCodes as http} from "http-status-codes";
 
-// Types
-
-type Event = Content & {
-    startDate: Date;
-    endDate: Date;
+type EventData = {
+    name: string;
+    startDate: string;
+    endDate: string;
 };
 
-export type EventResource = Id & Event;
+function isValidEvent(event: unknown): event is EventData {
+    return true; // **** FIX THIS ****
+}
 
-// Factory
+type EventResponse = {
+    id: string;
+    url: string;
+} & Partial<EventData>;
 
-export class EventFactory extends ResourceFactory {
-    constructor() { super("event"); }
-
-    newContent(content: object): Event {
-        if (!this.isValid(content)) throw new InvalidResourceError("Invalid event");
-
-        return {
-            ...super.newContent(content),
-            startDate: new Date(content.startDate),
-            endDate: new Date(content.endDate),
-        };
+function makeEventResponse(id: string, event?: EventData): EventResponse {
+    const eventResponse: EventResponse = {
+        id: id,
+        url: `/api/event/${id}`,
+    };
+    if (event) {
+        eventResponse.name = event.name;
+        eventResponse.startDate = event.startDate;
+        eventResponse.endDate = event.endDate;
     }
+    return eventResponse;
+}
 
-    isValid(item: object): item is Event {
-        return super.isValid(item)
-            && ("startDate" in item && typeof item.name === "string")
-            && ("endDate" in item && typeof item.name === "string");
+async function eventGetAll(req: express.Request, res: express.Response) {
+    const idList = await data.list("event");
+    const eventList = idList.map(id => makeEventResponse(id));
+    res.status(http.OK).json(eventList);
+}
+
+async function eventGet(req: express.Request, res: express.Response) {
+    const id = req.params.id!;
+    try {
+        const item = await data.get("event", id) as EventData;
+        const event = makeEventResponse(id, item);
+        res.status(http.OK).json(event);
     }
-
-    toRest(item: EventResource): object {
-        return {
-            ...super.toRest(item),
-            startDate: item.startDate?.toISOString()?.slice(0, 10),
-            endDate: item.endDate?.toISOString()?.slice(0, 10),
-        };
-    }
-
-    toData(item: Event) {
-        return {
-            ...super.toData(item),
-            startDate: item.startDate?.toISOString()?.slice(0, 10),
-            endDate: item.endDate?.toISOString()?.slice(0, 10),
-        };
+    catch (error) {
+        if (error instanceof data.LookupError)
+            throw new NotFoundError(error.message);
+        else
+            throw error;
     }
 }
 
-// Router
+async function eventPost(req: express.Request, res: express.Response) {
+    if (isValidEvent(req.body)) {
+        const id = await data.add("event", req.body as data.Data);
+        const event = makeEventResponse(id, req.body);
+        res.status(http.CREATED).json(event);
+    }
+    else
+        throw new BadRequestError("Invalid event data.");
+}
 
-const eventRest = new Rest(new EventFactory());
+async function eventPut(req: express.Request, res: express.Response) {
+    if (isValidEvent(req.body)) {
+        const id = req.params.id!;
+        await data.set("event", id, req.body as data.Data);
+        const event = makeEventResponse(id, req.body);
+        res.status(http.OK).json(event);
+    }
+    else
+        throw new BadRequestError("Invalid event data.");
+}
+
+async function eventDelete(req: express.Request, res: express.Response) {
+    const id = req.params.id!;
+    await data.del("event", id);
+    res.status(http.NO_CONTENT).send();
+}
 
 const router = express.Router();
-router.get("/", eventRest.getAll.bind(eventRest));
-router.get("/:id", eventRest.get.bind(eventRest));
-router.post("/", eventRest.post.bind(eventRest));
-router.put("/:id", eventRest.put.bind(eventRest));
-router.delete("/:id", eventRest.delete.bind(eventRest));
+router.get("/", eventGetAll);
+router.get("/:id", eventGet);
+router.post("/", eventPost);
+router.put("/:id", eventPut);
+router.delete("/:id", eventDelete);
 
 export default router;

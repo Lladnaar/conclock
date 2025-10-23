@@ -6,7 +6,7 @@ export class LookupError extends Error {}
 export class FormatError extends Error {}
 
 type Value = number | string | boolean | undefined;
-export type Record = {[key: string]: Value};
+export type Data = {[key: string]: Value};
 
 const client = createClient({url: config.redis.url});
 client.on("connect", () => console.info("Connecing to Redis..."));
@@ -50,7 +50,7 @@ export async function exists(type: string, id: string): Promise<boolean> {
     return await client.exists(key.key()) > 0;
 }
 
-export async function get(type: string, id: string): Promise<Record> {
+export async function get(type: string, id: string): Promise<Data> {
     const key = new Key(id, type);
     const jsonRecord = await client.get(key.key());
     if (jsonRecord) {
@@ -65,19 +65,19 @@ export async function get(type: string, id: string): Promise<Record> {
         throw new LookupError(`No data found for ${key}`);
 }
 
-export async function add(type: string, record: Record): Promise<string> {
+export async function add(type: string, record: Data): Promise<string> {
     const key = new Key(uuid(), type);
     await client.set(key.key(), JSON.stringify(record));
     return key.id;
 }
 
-export async function set(type: string, id: string, record: Record): Promise<void> {
+export async function set(type: string, id: string, record: Data): Promise<void> {
     const key = new Key(id, type);
     const jsonContent = JSON.stringify(record);
     await client.set(key.key(), jsonContent);
 }
 
-export async function update(type: string, id: string, record: Record): Promise<void> {
+export async function update(type: string, id: string, record: Data): Promise<void> {
     const existingRecord = await get(type, id);
     const updatedRecord = {...existingRecord, ...record};
     await set(type, id, updatedRecord);
