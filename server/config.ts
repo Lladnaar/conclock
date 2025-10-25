@@ -7,7 +7,7 @@ const config = {
         port: 8080,
         debug: false,
     },
-    client: {path: "./client/apps"},
+    client: {path: "./client"},
     redis: {url: "redis://localhost:6379"},
 };
 

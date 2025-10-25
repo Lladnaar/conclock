@@ -3,6 +3,7 @@ import auth from "basic-auth";
 import {UnauthorisedError} from "../http/error.ts";
 import {UserFactory} from "../resource/user.ts";
 import {TokenFactory, type TokenResource} from "../resource/token.ts";
+import {StatusCodes as http} from "http-status-codes";
 
 const BEARER_PREFIX = "Bearer ";
 
@@ -72,9 +73,20 @@ export class AuthRest {
             }) as TokenResource;
 
         res
-            .status(200)
+            .status(http.OK)
             .cookie("Session-Token", token.id)
             .json(this.tokenFactory.toRest(token));
+    }
+
+    async revoke(req: UserRequest, res: express.Response) {
+        const tokenId = await this.tokenFactory.find("userId", req.userId!);
+        if (tokenId)
+            await this.tokenFactory.delete(tokenId.id);
+
+        res
+            .status(http.NO_CONTENT)
+            .cookie("Session-Token", undefined)
+            .send();
     }
 }
 
@@ -85,5 +97,7 @@ const authRest = new AuthRest();
 const router = express.Router();
 router.use("/", authRest.authenticate.bind(authRest));
 router.post("/", authRest.login.bind(authRest));
+router.get("/", authRest.login.bind(authRest));
+router.delete("/", authRest.revoke.bind(authRest));
 
 export default router;

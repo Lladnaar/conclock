@@ -1,13 +1,8 @@
-import {describe, expect, test, beforeAll} from "vitest";
-import type {UserResource} from "../../resource/user.ts";
-import {UserFactory} from "../../resource/user.ts";
-import * as data from "../../data/redis.ts";
+import {describe, expect, test} from "vitest";
+import type {UserResource} from "../../server/resource/user.ts";
+import {UserFactory} from "../../server/resource/user.ts";
 
 const userFactory = new UserFactory();
-
-beforeAll(async () => {
-    await data.useTestDb();
-});
 
 describe("User created without password tests", () => {
     const password = "correcthorsebatterystaple";
