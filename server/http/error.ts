@@ -1,32 +1,41 @@
 import express from "express";
 import {StatusCodes as http, getReasonPhrase} from "http-status-codes";
 
+type ErrorOptions = {
+    contentType?: string;
+    details?: [string, string][];
+};
+
 export class HttpError extends Error {
     statusCode: http;
-    type: string;
+    contentType: string;
+    details?: [string, string][];
 
-    constructor(status: http, message: string, type: string = "application/json") {
+    constructor(status: http, message: string, options?: ErrorOptions) {
         super(message);
         this.statusCode = status;
-        this.type = type;
+        this.contentType = options?.contentType ?? "application/json";
+        this.details = options?.details;
     }
 }
 
 export class BadRequestError extends HttpError {
-    constructor(message: string, type?: string) { super(http.BAD_REQUEST, message, type); }
+    constructor(message: string, options?: ErrorOptions) { super(http.BAD_REQUEST, message, options); }
 }
+
 export class NotFoundError extends HttpError {
-    constructor(message: string, type?: string) { super(http.NOT_FOUND, message, type); }
+    constructor(message: string, options?: ErrorOptions) { super(http.NOT_FOUND, message, options); }
 }
+
 export class UnauthorisedError extends HttpError {
-    constructor(message: string, type?: string) { super(http.UNAUTHORIZED, message, type); }
+    constructor(message: string, options?: ErrorOptions) { super(http.UNAUTHORIZED, message, options); }
 }
 
 function sendError(res: express.Response, error: HttpError) {
-    if (error.type === "application/json") {
-        res.status(error.statusCode).json({statusCode: error.statusCode, message: error.message});
+    if (error.contentType === "application/json") {
+        res.status(error.statusCode).json({statusCode: error.statusCode, message: error.message, details: error.details});
     }
-    else if (error.type === "text/html") {
+    else if (error.contentType === "text/html") {
         res.status(error.statusCode).send(`<html><body><h1>${error.statusCode}: ${getReasonPhrase(error.statusCode)}</h1><p>${error.message}</p></body></html>`);
     }
     else {

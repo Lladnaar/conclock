@@ -33,7 +33,7 @@ server.use("/api/login", authRouter);
 // Errors
 
 server.all("/api/{*any}", () => { throw new NotFoundError("Resource not found"); });
-server.all("/{*any}", () => { throw new NotFoundError("Resource not found", "text/html"); });
+server.all("/{*any}", () => { throw new NotFoundError("Resource not found", {contentType: "text/html"}); });
 server.use(errorHandler);
 
 // Start server

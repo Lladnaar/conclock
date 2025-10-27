@@ -20,6 +20,7 @@
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "express": "^5.1.0",
+    "express-validator": "^7.3.0",
     "http-status-codes": "^2.3.0",
     "redis": "^5.8.0",
     "uuid": "^11.1.0"

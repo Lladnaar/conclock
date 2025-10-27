@@ -2,6 +2,7 @@ import express from "express";
 import {BadRequestError, NotFoundError} from "../http/error.ts";
 import * as data from "../data/redis.ts";
 import {StatusCodes as http} from "http-status-codes";
+import {checkSchema, validationResult} from "express-validator";
 
 type EventData = {
     name: string;
@@ -9,9 +10,11 @@ type EventData = {
     endDate: string;
 };
 
-function isValidEvent(event: unknown): event is EventData {
-    return true; // **** FIX THIS ****
-}
+const eventSchema = {
+    name: {isString: true, notEmpty: true, escape: true},
+    startDate: {isString: true, isDate: true, notEmpty: true},
+    endDate: {isString: true, isDate: true, notEmpty: true},
+};
 
 type EventResponse = {
     id: string;
@@ -52,25 +55,37 @@ async function eventGet(req: express.Request, res: express.Response) {
     }
 }
 
+function extractEvent(req: express.Request): EventData {
+    const result = validationResult(req);
+    if (!result.isEmpty())
+        throw new BadRequestError("Invalid event data", {
+            details: result.array().flatMap((error) => {
+                switch (error.type) {
+                case "field": return [[error.path, `${error.msg} (${error.value})`]];
+                case "unknown_fields": return error.fields.map((f): [string, string] => [f.path, "Unexpected field"]);
+                default: return [[error.type, error.msg]];
+                }
+            }),
+        });
+
+    return req.body as EventData;
+}
+
 async function eventPost(req: express.Request, res: express.Response) {
-    if (isValidEvent(req.body)) {
-        const id = await data.add("event", req.body as data.Data);
-        const event = makeEventResponse(id, req.body);
-        res.status(http.CREATED).json(event);
-    }
-    else
-        throw new BadRequestError("Invalid event data.");
+    const protoEvent = extractEvent(req);
+
+    const id = await data.add("event", protoEvent);
+    const event = makeEventResponse(id, protoEvent);
+    res.status(http.CREATED).json(event);
 }
 
 async function eventPut(req: express.Request, res: express.Response) {
-    if (isValidEvent(req.body)) {
-        const id = req.params.id!;
-        await data.set("event", id, req.body as data.Data);
-        const event = makeEventResponse(id, req.body);
-        res.status(http.OK).json(event);
-    }
-    else
-        throw new BadRequestError("Invalid event data.");
+    const protoEvent = extractEvent(req);
+    const id = req.params.id!;
+
+    await data.set("event", id, protoEvent);
+    const event = makeEventResponse(id, protoEvent);
+    res.status(http.OK).json(event);
 }
 
 async function eventDelete(req: express.Request, res: express.Response) {
@@ -82,8 +97,8 @@ async function eventDelete(req: express.Request, res: express.Response) {
 const router = express.Router();
 router.get("/", eventGetAll);
 router.get("/:id", eventGet);
-router.post("/", eventPost);
-router.put("/:id", eventPut);
+router.post("/", checkSchema(eventSchema, ["body"]), eventPost);
+router.put("/:id", checkSchema(eventSchema, ["body"]), eventPut);
 router.delete("/:id", eventDelete);
 
 export default router;
