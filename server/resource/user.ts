@@ -3,6 +3,7 @@ import {NotFoundError, BadRequestError} from "../http/error.ts";
 import bcrypt from "bcrypt";
 import * as data from "../data/redis.ts";
 import {StatusCodes as http} from "http-status-codes";
+import {checkSchema, validationResult} from "express-validator";
 
 type UserData = {
     name: string;
@@ -10,9 +11,11 @@ type UserData = {
     password?: string;
 };
 
-function isValidUser(user: unknown): user is UserData {
-    return true; // **** FIX THIS ****
-}
+const userSchema = {
+    name: {isString: true, notEmpty: true, escape: true},
+    username: {isString: true, notEmpty: true, escape: true},
+    password: {isString: true, optional: true, notEmpty: true},
+};
 
 type UserResponse = {
     id: string;
@@ -26,9 +29,10 @@ type PasswordData = {
     oldPassword?: string;
 };
 
-function isValidPassword(password: unknown): password is PasswordData {
-    return true; // **** FIX THIS ****
-}
+const passwordSchema = {
+    password: {isString: true, notEmpty: true},
+    oldPassword: {isString: true, optional: true, notEmpty: true},
+};
 
 function makeUserResponse(id: string, user?: UserData): UserResponse {
     const userResponse: UserResponse = {
@@ -65,35 +69,44 @@ async function userGet(req: express.Request, res: express.Response) {
     }
 }
 
-async function userPost(req: express.Request, res: express.Response) {
-    if (isValidUser(req.body)) {
-        if (typeof req.body.password === "string")
-            req.body.password = await encryptPassword(req.body.password);
+async function extractUser(req: express.Request): Promise<UserData> {
+    const result = validationResult(req);
+    if (!result.isEmpty())
+        throw new BadRequestError("Invalid user data", {
+            details: result.array().flatMap((error) => {
+                switch (error.type) {
+                case "field": return [[error.path, `${error.msg} (${error.value})`]];
+                case "unknown_fields": return error.fields.map((f): [string, string] => [f.path, "Unexpected field"]);
+                default: return [[error.type, error.msg]];
+                }
+            }),
+        });
 
-        const id = await data.add("user", req.body as data.Data);
-        const user = makeUserResponse(id, req.body);
-        res.status(http.CREATED).json(user);
-    }
-    else
-        throw new BadRequestError("Invalid user data.");
+    if (req.body.password)
+        req.body.password = await encryptPassword(req.body.password);
+    return req.body as UserData;
+}
+
+async function userPost(req: express.Request, res: express.Response) {
+    const protoUser = await extractUser(req);
+
+    const id = await data.add("user", protoUser);
+    const user = makeUserResponse(id, protoUser);
+    res.status(http.CREATED).json(user);
 }
 
 async function userPut(req: express.Request, res: express.Response) {
-    if (isValidUser(req.body)) {
-        const id = req.params.id!;
-        if (typeof req.body.password === "string")
-            req.body.password = await encryptPassword(req.body.password);
-        else {
-            const existingUser = await data.get("user", id);
-            req.body.password = typeof existingUser.password == "string" ? existingUser.password : undefined;
-        }
+    const protoUser = await extractUser(req);
+    const id = req.params.id!;
 
-        await data.set("user", id, req.body as data.Data);
-        const user = makeUserResponse(id, req.body);
-        res.status(http.OK).json(user);
+    if (!protoUser.password) {
+        const existingUser = await data.get("user", id) as UserData;
+        protoUser.password = existingUser.password;
     }
-    else
-        throw new BadRequestError("Invalid user data.");
+
+    await data.set("user", id, protoUser);
+    const user = makeUserResponse(id, protoUser);
+    res.status(http.OK).json(user);
 }
 
 async function userDelete(req: express.Request, res: express.Response) {
@@ -114,17 +127,32 @@ export async function checkPassword(id: string, password: string): Promise<boole
         return false;
 }
 
+async function extractPassword(req: express.Request): Promise<PasswordData> {
+    const result = validationResult(req);
+    if (!result.isEmpty())
+        throw new BadRequestError("Invalid user data", {
+            details: result.array().flatMap((error) => {
+                switch (error.type) {
+                case "field": return [[error.path, `${error.msg} (${error.value})`]];
+                case "unknown_fields": return error.fields.map((f): [string, string] => [f.path, "Unexpected field"]);
+                default: return [[error.type, error.msg]];
+                }
+            }),
+        });
+
+    if (req.body.password)
+        req.body.password = await encryptPassword(req.body.password);
+    return req.body as PasswordData;
+}
+
 async function userSetPassword(req: express.Request, res: express.Response) {
     try {
         const id = req.params.id!;
-        if (isValidPassword(req.body)) {
-            if ("oldPassword" in req.body && !await checkPassword(id, req.body.oldPassword!))
-                throw new BadRequestError("Old password incorrect");
-            else {
-                const hash = await encryptPassword(req.body.password);
-                await data.update("user", id, {password: hash});
-            }
-        }
+        const protoPassword = await extractPassword(req);
+        if (protoPassword.oldPassword && !await checkPassword(id, protoPassword.oldPassword!))
+            throw new BadRequestError("Old password incorrect");
+        else
+            await data.update("user", id, {password: protoPassword.password});
         res.status(http.OK).send();
     }
     catch (error) {
@@ -146,9 +174,9 @@ export async function userFind(property: string, value: string): Promise<string 
 const router = express.Router();
 router.get("/", userGetAll);
 router.get("/:id", userGet);
-router.post("/", userPost);
-router.put("/:id", userPut);
+router.post("/", checkSchema(userSchema, ["body"]), userPost);
+router.put("/:id", checkSchema(userSchema, ["body"]), userPut);
 router.delete("/:id", userDelete);
-router.post("/:id/password", userSetPassword);
+router.post("/:id/password", checkSchema(passwordSchema, ["body"]), userSetPassword);
 
 export default router;

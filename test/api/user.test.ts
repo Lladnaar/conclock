@@ -46,8 +46,10 @@ test.describe("User resource...", () => {
 
     test("...updated", async ({request}) => {
         user.username = "test2@resource.user";
+        delete user.password;
 
         const response = await request.put(url(user.url), {data: user});
+        expect(response.statusText()).toBe("");
         expect(response.status()).toBe(http.OK);
 
         const body = await response.json();
